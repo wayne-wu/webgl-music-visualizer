@@ -1,4 +1,6 @@
-# Getting Started
+# [HW1: Noise](https://github.com/CIS700-Procedural-Graphics/HW1-Noise)
+
+## Getting Started
 
 1. [Install Node.js](https://nodejs.org/en/download/). Node.js is a JavaScript runtime. It basically allows you to run JavaScript when not in a browser. For our purposes, this is not necessary. The important part is that with it comes `npm`, the Node Package Manager. This allows us to easily declare and install external dependencies such as [three.js](https://threejs.org/), [dat.GUI](https://workshop.chromeexperiments.com/examples/gui/#1--Basic-Usage), and [glMatrix](http://glmatrix.net/). Some other packages we'll be using make it significantly easier to develop your code and create modules for better code reuse and clarity. These tools make it _signficantly_ easier to write code in multiple `.js` files without globally defining everything.
 
@@ -15,19 +17,19 @@
     You should hopefully see the framework code with a 3D cube at the center of the screen!
 
 
-# Developing Your Code
+## Developing Your Code
 All of the JavaScript code is living inside the `src` directory. The main file that gets executed when you load the page as you may have guessed is `main.js`. Here, you can make any changes you want, import functions from other files, etc. The reason that I highly suggest you build your project with `npm start` is that doing so will start a process that watches for any changes you make to your code. If it detects anything, it'll automagically rebuild your project and then refresh your browser window for you. Wow. That's cool. If you do it the other way, you'll need to run `npm build` and then refresh your page every time you want to test something.
 
-# Publishing Your Code
+## Publishing Your Code
 We highly suggest that you put your code on GitHub. One of the reasons we chose to make this course using JavaScript is that the Web is highly accessible and making your awesome work public and visible can be a huge benefit when you're looking to score a job or internship. To aid you in this process, running `npm run deploy` will automatically build your project and push it to `gh-pages` where it will be visible at `username.github.io/repo-name`.
 
-# What is Actually Happening?
+## What is Actually Happening?
 You can skip this part if you really want, but I highly suggest you read it.
 
-## npm install
+### npm install
 `npm install` will install all dependencies into a folder called `node_modules`. That's about it.
 
-## package.json
+### package.json
 
 This is the important file that `npm` looks at. In it, you can see the commands it's using for the `start`, `build`, and `deploy` scripts mentioned above. You can also see all of the dependencies the project requires. I will briefly go through what each of these is.
  - dat-gui: Gives us a nice and simple GUI for modifying variables in our program
@@ -50,7 +52,7 @@ This is the important file that `npm` looks at. In it, you can see the commands 
 
  - webpack-glsl-loader: Webpack does much more than just JavaScript. We can use it to load glsl, css, images, etc. For whatever you want to import, somebody has probably made a webpack loader for it.
 
-## webpack.config.js
+### webpack.config.js
 
 This is the configuration file in webpack. The most important part is `entry` and `output`. These define the input and output for webpack. It will start from `entry`, explore all dependencies, and package them all into `output`. Here, the `output` is `bundle.js`. If you look in `index.html`, you can see that the page is loading `bundle.js`, not `main.js`.
 
