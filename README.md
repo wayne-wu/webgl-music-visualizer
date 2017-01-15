@@ -1,4 +1,4 @@
-# [HW1: Noise](https://github.com/CIS700-Procedural-Graphics/HW1-Noise)
+# [HW1: Noise](https://github.com/CIS700-Procedural-Graphics/Project1-Noise)
 
 ## Getting Started
 
