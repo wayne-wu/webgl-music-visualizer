@@ -46,7 +46,7 @@ function init(callback, update) {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
-    }, false);
+    });
 
     // assign THREE.js objects to the object we will return
     framework.scene = scene;
@@ -70,3 +70,6 @@ function init(callback, update) {
 export default {
   init: init
 }
+
+export const PI = 3.14159265
+export const e = 2.7181718

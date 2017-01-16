@@ -15,19 +15,24 @@ function onLoad(framework) {
 
   // initialize a simple box and material
   var box = new THREE.BoxGeometry(1, 1, 1);
-  var lambertWhite = new THREE.MeshLambertMaterial({ color: 0xeeeeee });
-  var lambertCube = new THREE.Mesh(box, lambertWhite);
-  var directionalLight = new THREE.DirectionalLight( 0xffffff, 1 );
-  directionalLight.color.setHSL(0.1, 1, 0.95);
-  directionalLight.position.set(1, 3, 2);
-  directionalLight.position.multiplyScalar(10);
+
+  var adamMaterial = new THREE.ShaderMaterial({
+    uniforms: {
+      image: { // Check the Three.JS documentation for the different allowed types and values
+        type: "t", 
+        value: THREE.ImageUtils.loadTexture('./adam.jpg')
+      }
+    },
+    vertexShader: require('./shaders/adam-vert.glsl'),
+    fragmentShader: require('./shaders/adam-frag.glsl')
+  });
+  var adamCube = new THREE.Mesh(box, adamMaterial);
 
   // set camera position
   camera.position.set(1, 1, 2);
   camera.lookAt(new THREE.Vector3(0,0,0));
 
-  scene.add(lambertCube);
-  scene.add(directionalLight);
+  scene.add(adamCube);
 
   // edit params and listen to changes like this
   // more information here: https://workshop.chromeexperiments.com/examples/gui/#1--Basic-Usage
