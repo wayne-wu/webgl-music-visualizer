@@ -106,3 +106,13 @@ Using dat.GUI and the examples provided in the reference code, make some aspect 
 - Mouse interactivity (medium): Find out how to get the current mouse position in your scene and use it to deform your cloud, such that users can deform the cloud with their cursor.
 
 - Music (hard): Figure out a way to use music to drive your noise animation in some way, such that your noise cloud appears to dance.
+
+## Submission
+
+- Update README.md to contain a solid description of your project
+
+- Publish your project to gh-pages. `npm run deploy`. It should now be visible at http://username.github.io/repo-name
+
+- Create a [pull request](https://help.github.com/articles/creating-a-pull-request/) to this repository, and in the comment, include a link to your published project.
+
+- Submit the link to your pull request on Canvas.
