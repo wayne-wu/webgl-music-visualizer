@@ -1,5 +1,9 @@
 # [HW1: Noise](https://github.com/CIS700-Procedural-Graphics/Project1-Noise)
 
+## Objective
+
+Get comfortable with using three.js and its shader support and generate an interesting 3D, continuous surface using a multi-octave noise algorithm.
+
 ## Getting Started
 
 1. [Install Node.js](https://nodejs.org/en/download/). Node.js is a JavaScript runtime. It basically allows you to run JavaScript when not in a browser. For our purposes, this is not necessary. The important part is that with it comes `npm`, the Node Package Manager. This allows us to easily declare and install external dependencies such as [three.js](https://threejs.org/), [dat.GUI](https://workshop.chromeexperiments.com/examples/gui/#1--Basic-Usage), and [glMatrix](http://glmatrix.net/). Some other packages we'll be using make it significantly easier to develop your code and create modules for better code reuse and clarity. These tools make it _signficantly_ easier to write code in multiple `.js` files without globally defining everything.
@@ -57,3 +61,48 @@ This is the important file that `npm` looks at. In it, you can see the commands 
 This is the configuration file in webpack. The most important part is `entry` and `output`. These define the input and output for webpack. It will start from `entry`, explore all dependencies, and package them all into `output`. Here, the `output` is `bundle.js`. If you look in `index.html`, you can see that the page is loading `bundle.js`, not `main.js`.
 
 The other sections are just configuration settings for `webpack-dev-server` and setup for loading different types of files.
+
+## Setting up a shader
+
+Using the provided framework code, create a new three.js material which references a vertex and fragment shader. Look at the adamMaterial for reference. It should reference at least one uniform variable (you'll need a time variable to animate your mesh later on).
+
+Create [an icosahedron](https://threejs.org/docs/index.html#Reference/Geometries/IcosahedronBufferGeometry), instead of the default cube geometry provided in the scene. Test your shader setup by applying the material to the icosahedron and color the mesh in the fragment shader using the normals' XYZ components as RGB.
+
+Note that three.js automatically injects several uniform and attribute variables into your shaders by default; they are listed in the [documentation](https://threejs.org/docs/api/renderers/webgl/WebGLProgram.html) for three.js's WebGLProgram class.
+
+## Noise Generation
+
+In the shader, write a 3D multi-octave lattice-value noise function that takes three input parameters and generates output in a controlled range, say [0,1] or [-1, 1]. This will require the following steps. 
+
+1. Write several (for however many octaves of noise you want) basic pseudo-random 3D noise function (the hash-like functions we discussed in class). It's fine to reference one from the slides or elsewhere on the Internet. Again, this should just be a set of math operations, often using large prime numbers to random-looking output from three input parameters.
+
+2. Write an interpolation function. Lerp is fine, but for better results, we suggest cosine interpolation.
+
+3. (Optional) Write a smoothing function that will average the results of the noise value at some (x, y, z) with neighboring values, that is (x+-1, y+-1, z+-1).
+
+4. Using the interpolation function and your noise generator, write an 'interpolate noise' function that will take some (x, y, z) input and interpolate a noise value using the nearest lattice values (for 3D, this means the surrounding 8 integer points). Use smoothed noise if you've implemented it.
+
+5. Finally, using your interpolate noise function, which will generate a single octave of noise, write a multi-octave noise generation function that will sum multiple noise functions with different frequencies, amplitude decaying with some persistence value. The pseudocode for this function is in the slides.
+
+
+## Noise Application
+
+View your noise in action by applying it as a displacement on the surface of your icosahedron, giving your icosahedron a bumpy, cloud-like appearance. Simply take the noise value as a height, offsetting the vertices along the icosahedron's surface normals. Treat the noise like a texture you are mapping onto the surface.
+
+In order to animate the offset, use time as the third dimension. Pass the current time since start of program as a unif to the shaders.
+
+For both visual impact and debugging help, also apply color to your geometry using the noise value at each point. There are several ways to do this. You can either use the noise value to read from a texture (say, a simple gradient image), or just compute the color by hand by lerping between values.
+
+## Interactivity
+
+Using dat.GUI and the examples provided in the reference code, make some aspect of your demo an interactive variable. For example, you could add a slider for time, adjust the strength or scale of the noise, change the number of octaves, etc.
+
+## For the overachievers (extra credit)
+
+- More interactivity (easy): pretty self-explanatory. Make more aspects of your demo interactive by adding more controlable variables in the GUI.
+
+- Custom mesh (easy): Figure out how to import a custom mesh rather than using an icosahedron for a fancy-shaped cloud.
+
+- Mouse interactivity (medium): Find out how to get the current mouse position in your scene and use it to deform your cloud, such that users can deform the cloud with their cursor.
+
+- Music (hard): Figure out a way to use music to drive your noise animation in some way, such that your noise cloud appears to dance.
