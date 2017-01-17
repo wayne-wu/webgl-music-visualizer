@@ -74,28 +74,28 @@ Note that three.js automatically injects several uniform and attribute variables
 
 In the shader, write a 3D multi-octave lattice-value noise function that takes three input parameters and generates output in a controlled range, say [0,1] or [-1, 1]. This will require the following steps. 
 
-1. Write several (for however many octaves of noise you want) basic pseudo-random 3D noise function (the hash-like functions we discussed in class). It's fine to reference one from the slides or elsewhere on the Internet. Again, this should just be a set of math operations, often using large prime numbers to random-looking output from three input parameters.
+1. Write several (for however many octaves of noise you want) basic pseudo-random 3D noise functions (the hash-like functions we discussed in class). It's fine to reference one from the slides or elsewhere on the Internet. Again, this should just be a set of math operations, often using large prime numbers to random-looking output from three input parameters.
 
 2. Write an interpolation function. Lerp is fine, but for better results, we suggest cosine interpolation.
 
 3. (Optional) Write a smoothing function that will average the results of the noise value at some (x, y, z) with neighboring values, that is (x+-1, y+-1, z+-1).
 
-4. Using the interpolation function and your noise generator, write an 'interpolate noise' function that will take some (x, y, z) input and interpolate a noise value using the nearest lattice values (for 3D, this means the surrounding 8 integer points). Use smoothed noise if you've implemented it.
+4. Write an 'interpolate noise' function that takes some (x, y, z) point as input and produces a noise value for that point by interpolating the surrounding lattice values (for 3D, this means the surrounding eight 'corner' points). Use your interpolation function and pseudo-random noise generator to accomplish this.
 
-5. Finally, using your interpolate noise function, which will generate a single octave of noise, write a multi-octave noise generation function that will sum multiple noise functions with different frequencies, amplitude decaying with some persistence value. The pseudocode for this function is in the slides.
+5. Write a multi-octave noise generation function that sums multiple noise functions together, with each subsequent noise function increasing in frequency and decreasing in amplitude. You should use the interpolate noise function you wrote previously to accomplish this, as it generates a single octave of noise. The slides contain pseudocode for writing your multi-octave noise function.
 
 
 ## Noise Application
 
-View your noise in action by applying it as a displacement on the surface of your icosahedron, giving your icosahedron a bumpy, cloud-like appearance. Simply take the noise value as a height, offsetting the vertices along the icosahedron's surface normals. Treat the noise like a texture you are mapping onto the surface.
+View your noise in action by applying it as a displacement on the surface of your icosahedron, giving your icosahedron a bumpy, cloud-like appearance. Simply take the noise value as a height, and offset the vertices along the icosahedron's surface normals. You are, of course, free to alter the way your noise perturbs your icosahedron's surface as you see fit; we are simply recommending an easy way to visualize your noise. You could even apply a couple of different noise functions to perturb your surface to make it even less spherical.
 
-In order to animate the offset, use time as the third dimension. Pass the current time since start of program as a unif to the shaders.
+In order to animate the vertex displacement, use time as the third dimension or as some offset to the (x, y, z) input to the noise function. Pass the current time since start of program as a uniform to the shaders.
 
-For both visual impact and debugging help, also apply color to your geometry using the noise value at each point. There are several ways to do this. You can either use the noise value to read from a texture (say, a simple gradient image), or just compute the color by hand by lerping between values.
+For both visual impact and debugging help, also apply color to your geometry using the noise value at each point. There are several ways to do this. For example, you might use the noise value to create UV coordinates to read from a texture (say, a simple gradient image), or just compute the color by hand by lerping between values.
 
 ## Interactivity
 
-Using dat.GUI and the examples provided in the reference code, make some aspect of your demo an interactive variable. For example, you could add a slider for time, adjust the strength or scale of the noise, change the number of octaves, etc.
+Using dat.GUI and the examples provided in the reference code, make some aspect of your demo an interactive variable. For example, you could add a slider to adjust the strength or scale of the noise, change the number of noise octaves, etc.
 
 ## For the overachievers (extra credit)
 
