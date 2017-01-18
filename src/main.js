@@ -1,6 +1,8 @@
 
 const THREE = require('three'); // older modules are imported like this. You shouldn't have to worry about this much
 import Framework from './framework'
+import Noise from './noise'
+import {other} from './noise'
 
 // called after the scene loads
 function onLoad(framework) {
@@ -43,8 +45,16 @@ function onLoad(framework) {
 
 // called on frame updates
 function onUpdate(framework) {
-  console.log(`the time is ${new Date()}`);
+  // console.log(`the time is ${new Date()}`);
 }
 
 // when the scene is done initializing, it will call onLoad, then on frame updates, call onUpdate
 Framework.init(onLoad, onUpdate);
+
+// console.log('hello world');
+
+// console.log(Noise.generateNoise());
+
+// Noise.whatever()
+
+// console.log(other())
