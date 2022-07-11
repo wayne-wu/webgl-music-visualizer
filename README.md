@@ -95,24 +95,21 @@ For both visual impact and debugging help, also apply color to your geometry usi
 
 ## Interactivity
 
-Using dat.GUI and the examples provided in the reference code, make some aspect of your demo an interactive variable. For example, you could add a slider to adjust the strength or scale of the noise, change the number of noise octaves, etc.
+Using dat.GUI and the examples provided in the reference code, make at least TWO aspects of your demo interactive variables. For example, you could add a slider to adjust the strength or scale of the noise, change the number of noise octaves, etc. 
 
-## For the overachievers (extra credit)
+Add a button that will restore your fireball to some nice-looking (courtesy of your art direction) defaults. :)
 
-- More interactivity (easy): pretty self-explanatory. Make more aspects of your demo interactive by adding more controlable variables in the GUI.
+## Extra Spice
+
+Choose one of the following options: 
 
 - Custom mesh (easy): Figure out how to import a custom mesh rather than using an icosahedron for a fancy-shaped cloud.
-
 - Mouse interactivity (medium): Find out how to get the current mouse position in your scene and use it to deform your cloud, such that users can deform the cloud with their cursor.
-
 - Music (hard): Figure out a way to use music to drive your noise animation in some way, such that your noise cloud appears to dance.
 
 ## Submission
 
 - Update README.md to contain a solid description of your project
-
 - Publish your project to gh-pages. `npm run deploy`. It should now be visible at http://username.github.io/repo-name
-
 - Create a [pull request](https://help.github.com/articles/creating-a-pull-request/) to this repository, and in the comment, include a link to your published project.
-
 - Submit the link to your pull request on Canvas.
