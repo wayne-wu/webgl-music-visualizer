@@ -2,15 +2,17 @@
 
 ## Objective
 
-Get comfortable with using three.js and its shader support and generate an interesting 3D, continuous surface using a multi-octave noise algorithm.
+Get comfortable with using WebGL and its shaders to generate an interesting 3D, continuous surface using a multi-octave noise algorithm.
 
 ## Getting Started
 
 1. Fork and clone [this repository](https://github.com/CIS700-Procedural-Graphics/Project1-Noise).
 
-2. In the root directory of your project, run `npm install`. This will download all of those dependencies.
+2. Copy your hw0 code into your local hw1 repository.
 
-3. Do either of the following (but I highly recommend the first one for reasons I will explain later).
+3. In the root directory of your project, run `npm install`. This will download all of those dependencies.
+
+4. Do either of the following (but I highly recommend the first one for reasons I will explain later).
 
     a. Run `npm start` and then go to `localhost:7000` in your web browser
 
@@ -25,7 +27,9 @@ All of the JavaScript code is living inside the `src` directory. The main file t
 ## Publishing Your Code
 We highly suggest that you put your code on GitHub. One of the reasons we chose to make this course using JavaScript is that the Web is highly accessible and making your awesome work public and visible can be a huge benefit when you're looking to score a job or internship. To aid you in this process, running `npm run deploy` will automatically build your project and push it to `gh-pages` where it will be visible at `username.github.io/repo-name`.
 
-## Setting up a shader
+## Setting up `main.ts`
+
+Alter `main.ts` so that it renders the icosphere provided, rather than the cube you built in hw0. You will be writing a WebGL shader to displace its surface to look like a fireball. You may either rewrite the shader you wrote in hw0, or make a new `ShaderProgram` instance that uses new GLSL files.
 
 ## Noise Generation
 
@@ -48,7 +52,7 @@ For both visual impact and debugging help, also apply color to your geometry usi
 
 ## Interactivity
 
-Using dat.GUI and the examples provided in the reference code, make at least THREE aspects of your demo interactive variables. For example, you could add a slider to adjust the strength or scale of the noise, change the number of noise octaves, etc. 
+Using dat.GUI, make at least THREE aspects of your demo interactive variables. For example, you could add a slider to adjust the strength or scale of the noise, change the number of noise octaves, etc. 
 
 Add a button that will restore your fireball to some nice-looking (courtesy of your art direction) defaults. :)
 
