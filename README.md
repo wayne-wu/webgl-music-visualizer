@@ -48,7 +48,7 @@ For both visual impact and debugging help, also apply color to your geometry usi
 
 ## Interactivity
 
-Using dat.GUI and the examples provided in the reference code, make at least TWO aspects of your demo interactive variables. For example, you could add a slider to adjust the strength or scale of the noise, change the number of noise octaves, etc. 
+Using dat.GUI and the examples provided in the reference code, make at least THREE aspects of your demo interactive variables. For example, you could add a slider to adjust the strength or scale of the noise, change the number of noise octaves, etc. 
 
 Add a button that will restore your fireball to some nice-looking (courtesy of your art direction) defaults. :)
 
@@ -56,6 +56,7 @@ Add a button that will restore your fireball to some nice-looking (courtesy of y
 
 Choose one of the following options: 
 
+- Background (easy-hard depending on how fancy you get): Add an interesting background or a more complex scene to place your fireball in so it's not floating in a black void
 - Custom mesh (easy): Figure out how to import a custom mesh rather than using an icosahedron for a fancy-shaped cloud.
 - Mouse interactivity (medium): Find out how to get the current mouse position in your scene and use it to deform your cloud, such that users can deform the cloud with their cursor.
 - Music (hard): Figure out a way to use music to drive your noise animation in some way, such that your noise cloud appears to dance.
