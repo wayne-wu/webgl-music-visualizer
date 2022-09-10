@@ -6,11 +6,11 @@ Get comfortable with using three.js and its shader support and generate an inter
 
 ## Getting Started
 
-2. Fork and clone [this repository](https://github.com/CIS700-Procedural-Graphics/Project1-Noise).
+1. Fork and clone [this repository](https://github.com/CIS700-Procedural-Graphics/Project1-Noise).
 
-3. In the root directory of your project, run `npm install`. This will download all of those dependencies.
+2. In the root directory of your project, run `npm install`. This will download all of those dependencies.
 
-4. Do either of the following (but I highly recommend the first one for reasons I will explain later).
+3. Do either of the following (but I highly recommend the first one for reasons I will explain later).
 
     a. Run `npm start` and then go to `localhost:7000` in your web browser
 
