@@ -4,6 +4,7 @@
     "build": "webpack"
   },
   "devDependencies": {
+    "@types/dat.gui": "^0.7.7",
     "@types/webgl2": "0.0.6",
     "ts-loader": "^9.2.5",
     "typescript": "^4.4.2",
@@ -14,6 +15,8 @@
   },
   "dependencies": {
     "3d-view-controls": "^2.2.2",
-    "gl-matrix": "^3.3.0"
+    "dat.gui": "^0.7.7",
+    "gl-matrix": "^3.3.0",
+    "stats-js": "^1.0.1"
   }
 }

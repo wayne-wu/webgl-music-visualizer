@@ -1,52 +1,60 @@
-import {vec2, vec3} from 'gl-matrix';
-// import * as Stats from 'stats-js';
-// import * as DAT from 'dat-gui';
+import {vec3, vec4} from 'gl-matrix';
+const Stats = require('stats-js');
+import * as DAT from 'dat.gui';
+import Icosphere from './geometry/Icosphere';
 import Square from './geometry/Square';
 import OpenGLRenderer from './rendering/gl/OpenGLRenderer';
 import Camera from './Camera';
 import {setGL} from './globals';
 import ShaderProgram, {Shader} from './rendering/gl/ShaderProgram';
+import Cube from './geometry/Cube';
 
 // Define an object with application parameters and button callbacks
 // This will be referred to by dat.GUI's functions that add GUI elements.
 const controls = {
-  tesselations: 5,
+  tesselations: 7,
+  color: [ 0, 128, 255],
+  scale: 1.5,
+  persistence: 0.75,
+  displacement: 0.1,
+  frequency: 0.1,
   'Load Scene': loadScene, // A function pointer, essentially
 };
 
+let icosphere: Icosphere;
 let square: Square;
-let time: number = 0;
+let cube: Cube;
+let prevTesselations: number = 5;
 
 function loadScene() {
-  square = new Square(vec3.fromValues(0, 0, 0));
-  square.create();
-  // time = 0;
+  icosphere = new Icosphere(vec3.fromValues(0, 0, 0), 1, controls.tesselations);
+  icosphere.create();
+  // square = new Square(vec3.fromValues(0, 0, 0));
+  // square.create();
+  cube = new Cube(vec3.fromValues(0,0,0));
+  cube.create();
 }
 
 function main() {
-  window.addEventListener('keypress', function (e) {
-    // console.log(e.key);
-    switch(e.key) {
-      // Use this if you wish
-    }
-  }, false);
-
-  window.addEventListener('keyup', function (e) {
-    switch(e.key) {
-      // Use this if you wish
-    }
-  }, false);
-
   // Initial display for framerate
-  // const stats = Stats();
-  // stats.setMode(0);
-  // stats.domElement.style.position = 'absolute';
-  // stats.domElement.style.left = '0px';
-  // stats.domElement.style.top = '0px';
-  // document.body.appendChild(stats.domElement);
+  const stats = Stats();
+  stats.setMode(0);
+  stats.domElement.style.position = 'absolute';
+  stats.domElement.style.left = '0px';
+  stats.domElement.style.top = '0px';
+  document.body.appendChild(stats.domElement);
 
   // Add controls to the gui
-  // const gui = new DAT.GUI();
+  const gui = new DAT.GUI();
+  gui.add(controls, 'tesselations', 0, 8).step(1);
+  gui.addColor(controls, "color");
+  const noise_gui = gui.addFolder("noise");
+  noise_gui.add(controls, 'persistence', 0, 1);
+  noise_gui.add(controls, 'scale', 0, 5);
+  const jitter_gui = gui.addFolder("jitter");
+  jitter_gui.add(controls, "displacement", 0, 1);
+  jitter_gui.add(controls, "frequency", 0, 2);
+  gui.add(controls, 'Load Scene');
 
   // get canvas and webgl context
   const canvas = <HTMLCanvasElement> document.getElementById('canvas');
@@ -61,33 +69,49 @@ function main() {
   // Initial call to load scene
   loadScene();
 
-  const camera = new Camera(vec3.fromValues(0, 0, -10), vec3.fromValues(0, 0, 0));
+  const camera = new Camera(vec3.fromValues(0, 0, 5), vec3.fromValues(0, 0, 0));
 
   const renderer = new OpenGLRenderer(canvas);
-  renderer.setClearColor(164.0 / 255.0, 233.0 / 255.0, 1.0, 1);
+  renderer.setClearColor(0.0, 0.0, 0.0, 1);
   gl.enable(gl.DEPTH_TEST);
 
-  const flat = new ShaderProgram([
-    new Shader(gl.VERTEX_SHADER, require('./shaders/flat-vert.glsl')),
-    new Shader(gl.FRAGMENT_SHADER, require('./shaders/flat-frag.glsl')),
+  const lambert = new ShaderProgram([
+    new Shader(gl.VERTEX_SHADER, require('./shaders/lambert-vert.glsl')),
+    new Shader(gl.FRAGMENT_SHADER, require('./shaders/lambert-frag.glsl')),
   ]);
 
-  function processKeyPresses() {
-    // Use this if you wish
-  }
+  const custom = new ShaderProgram([
+    new Shader(gl.VERTEX_SHADER, require('./shaders/custom-vert.glsl')),
+    new Shader(gl.FRAGMENT_SHADER, require('./shaders/custom-frag.glsl')),
+  ])
+
+  var time = 0;
 
   // This function will be called every frame
   function tick() {
+    time++;
     camera.update();
-    // stats.begin();
+    stats.begin();
     gl.viewport(0, 0, window.innerWidth, window.innerHeight);
     renderer.clear();
-    processKeyPresses();
-    renderer.render(camera, flat, [
-      square,
-    ], time);
-    time++;
-    // stats.end();
+    if(controls.tesselations != prevTesselations)
+    {
+      prevTesselations = controls.tesselations;
+      icosphere = new Icosphere(vec3.fromValues(0, 0, 0), 1, prevTesselations);
+      icosphere.create();
+    }
+
+    custom.setNoise(controls.scale, controls.persistence);
+    custom.setGeometryColor(vec4.fromValues(
+      controls.color[0]/255., controls.color[1]/255., controls.color[2]/255., 1.0));  
+    custom.setJitter(controls.displacement, controls.frequency);
+    custom.setTime(time);
+
+    renderer.render(camera, custom, [
+      icosphere,
+      // square,
+    ]);
+    stats.end();
 
     // Tell the browser to call `tick` again whenever it renders a new frame
     requestAnimationFrame(tick);
@@ -97,13 +121,11 @@ function main() {
     renderer.setSize(window.innerWidth, window.innerHeight);
     camera.setAspectRatio(window.innerWidth / window.innerHeight);
     camera.updateProjectionMatrix();
-    flat.setDimensions(window.innerWidth, window.innerHeight);
   }, false);
 
   renderer.setSize(window.innerWidth, window.innerHeight);
   camera.setAspectRatio(window.innerWidth / window.innerHeight);
   camera.updateProjectionMatrix();
-  flat.setDimensions(window.innerWidth, window.innerHeight);
 
   // Start the render loop
   tick();
