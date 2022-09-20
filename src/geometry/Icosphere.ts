@@ -9,7 +9,7 @@ class Icosphere extends Drawable {
   normals: Float32Array;
   center: vec4;
 
-  constructor(center: vec3, public radius: number, public subdivisions: number) {
+  constructor(center: vec3, public radius: number, public subdivisions: number, public mode: GLenum) {
     super(); // Call the constructor of the super class. This is required.
     this.center = vec4.fromValues(center[0], center[1], center[2], 1);
   }
@@ -173,6 +173,10 @@ class Icosphere extends Drawable {
     gl.bufferData(gl.ARRAY_BUFFER, this.positions, gl.STATIC_DRAW);
 
     console.log(`Created icosphere with ${vertices.length} vertices`);
+  }
+
+  drawMode(): GLenum {
+    return this.mode;
   }
 };
 

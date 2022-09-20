@@ -126,7 +126,8 @@ void main()
 {
     // Material base color (before shading)
     vec4 diffuseColor = u_Color;
-    diffuseColor.xyz *= fs_Disp;
+
+    diffuseColor.xyz = mix(vec3(1.0), u_Color.xyz, fs_Disp);
     // diffuseColor.xyz *= fbm(fs_Pos.xyz);
 
 

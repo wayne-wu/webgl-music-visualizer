@@ -5,7 +5,7 @@ import Icosphere from './geometry/Icosphere';
 import Square from './geometry/Square';
 import OpenGLRenderer from './rendering/gl/OpenGLRenderer';
 import Camera from './Camera';
-import {setGL} from './globals';
+import {setGL, gl} from './globals';
 import ShaderProgram, {Shader} from './rendering/gl/ShaderProgram';
 import Cube from './geometry/Cube';
 
@@ -15,8 +15,7 @@ import audioFile from "./assets/infinitysign.mp3";
 // Define an object with application parameters and button callbacks
 // This will be referred to by dat.GUI's functions that add GUI elements.
 const controls = {
-  tesselations: 7,
-  color: [ 0, 128, 255],
+  color: [ 255, 0, 0],
   scale: 1.5,
   persistence: 0.75,
   displacement: 0.1,
@@ -25,7 +24,8 @@ const controls = {
   'Play Music': playMusic,
 };
 
-let icosphere: Icosphere;
+let outtersphere: Icosphere;
+let innersphere: Icosphere;
 let square: Square;
 let cube: Cube;
 let prevTesselations: number = 5;
@@ -34,12 +34,11 @@ let audioContext : AudioContext;
 let audioElement: HTMLAudioElement;
 
 function loadScene() {
-  icosphere = new Icosphere(vec3.fromValues(0, 0, 0), 1, controls.tesselations);
-  icosphere.create();
-  // square = new Square(vec3.fromValues(0, 0, 0));
-  // square.create();
-  cube = new Cube(vec3.fromValues(0,0,0));
-  cube.create();
+  outtersphere = new Icosphere(vec3.fromValues(0, 0, 0), 3, 4, gl.LINES);
+  outtersphere.create();
+
+  innersphere = new Icosphere(vec3.fromValues(0, 0, 0), 1, 7, gl.TRIANGLES);
+  innersphere.create();
 }
 
 function playMusic() {
@@ -79,7 +78,6 @@ function main() {
 
   // Add controls to the gui
   const gui = new DAT.GUI();
-  gui.add(controls, 'tesselations', 0, 8).step(1);
   gui.addColor(controls, "color");
   const noise_gui = gui.addFolder("noise");
   noise_gui.add(controls, 'persistence', 0, 1);
@@ -109,11 +107,6 @@ function main() {
   renderer.setClearColor(0.0, 0.0, 0.0, 1);
   gl.enable(gl.DEPTH_TEST);
 
-  const lambert = new ShaderProgram([
-    new Shader(gl.VERTEX_SHADER, require('./shaders/lambert-vert.glsl')),
-    new Shader(gl.FRAGMENT_SHADER, require('./shaders/lambert-frag.glsl')),
-  ]);
-
   const custom = new ShaderProgram([
     new Shader(gl.VERTEX_SHADER, require('./shaders/custom-vert.glsl')),
     new Shader(gl.FRAGMENT_SHADER, require('./shaders/custom-frag.glsl')),
@@ -131,7 +124,7 @@ function main() {
     let average: number = 0.0;
     for(var i = 0; i < audioAnalyser.frequencyBinCount; i++)
     {
-        average += dataArray[i]/256.0;
+      average += dataArray[i]/256.0;
     }
     average /= dataArray.length;
 
@@ -139,12 +132,6 @@ function main() {
     stats.begin();
     gl.viewport(0, 0, window.innerWidth, window.innerHeight);
     renderer.clear();
-    if(controls.tesselations != prevTesselations)
-    {
-      prevTesselations = controls.tesselations;
-      icosphere = new Icosphere(vec3.fromValues(0, 0, 0), 1, prevTesselations);
-      icosphere.create();
-    }
 
     custom.setNoise(controls.scale, controls.persistence);
     custom.setGeometryColor(vec4.fromValues(
@@ -154,9 +141,13 @@ function main() {
     custom.setAudio(average);
 
     renderer.render(camera, custom, [
-      icosphere,
-      // square,
+      outtersphere,
     ]);
+
+    renderer.render(camera, custom, [
+      innersphere,
+    ])
+
     stats.end();
 
     // Tell the browser to call `tick` again whenever it renders a new frame

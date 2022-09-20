@@ -143,7 +143,7 @@ void main()
     
     float amp = sin(0.1*u_Time) + 1.0;
 
-    float displacement = u_AudioFreqAvg*4.0*fbm(vs_Pos.xyz + vec3(u_Time*0.01));
+    float displacement = u_AudioFreqAvg*u_AudioFreqAvg*10.0*fbm(vs_Pos.xyz + vec3(u_Time*0.01));
 
     fs_Disp = map(displacement, 0.0, 5.0, 0.0, 1.0);
 
