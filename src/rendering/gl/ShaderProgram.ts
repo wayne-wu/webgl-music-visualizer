@@ -35,6 +35,9 @@ class ShaderProgram {
   unifDisplacement: WebGLUniformLocation;
   unifFrequency: WebGLUniformLocation;
 
+  // Audio
+  unifAudioFreqAvg : WebGLUniformLocation;
+
   constructor(shaders: Array<Shader>) {
     this.prog = gl.createProgram();
 
@@ -58,6 +61,7 @@ class ShaderProgram {
     this.unifNoisePersistence = gl.getUniformLocation(this.prog, "u_NoisePersistence");
     this.unifDisplacement = gl.getUniformLocation(this.prog, "u_Displacement");
     this.unifFrequency = gl.getUniformLocation(this.prog, "u_Frequency");
+    this.unifAudioFreqAvg = gl.getUniformLocation(this.prog, "u_AudioFreqAvg");
   }
 
   use() {
@@ -110,6 +114,11 @@ class ShaderProgram {
     this.use();
     gl.uniform1f(this.unifDisplacement, displacement);
     gl.uniform1f(this.unifFrequency, frequency);
+  }
+
+  setAudio(freqAvg: number) {
+    this.use();
+    gl.uniform1f(this.unifAudioFreqAvg, freqAvg);
   }
 
   draw(d: Drawable) {

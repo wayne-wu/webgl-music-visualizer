@@ -19,6 +19,10 @@ module.exports = {
         test: /\.glsl$/,
         loader: 'webpack-glsl-loader'
       },
+      {
+        test: /\.mp3$/,
+        loader: 'file-loader',
+      },
     ]
   },
   resolve: {

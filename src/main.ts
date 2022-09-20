@@ -9,6 +9,9 @@ import {setGL} from './globals';
 import ShaderProgram, {Shader} from './rendering/gl/ShaderProgram';
 import Cube from './geometry/Cube';
 
+import audioFile from "./assets/infinitysign.mp3";
+
+
 // Define an object with application parameters and button callbacks
 // This will be referred to by dat.GUI's functions that add GUI elements.
 const controls = {
@@ -19,12 +22,16 @@ const controls = {
   displacement: 0.1,
   frequency: 0.1,
   'Load Scene': loadScene, // A function pointer, essentially
+  'Play Music': playMusic,
 };
 
 let icosphere: Icosphere;
 let square: Square;
 let cube: Cube;
 let prevTesselations: number = 5;
+
+let audioContext : AudioContext;
+let audioElement: HTMLAudioElement;
 
 function loadScene() {
   icosphere = new Icosphere(vec3.fromValues(0, 0, 0), 1, controls.tesselations);
@@ -35,6 +42,15 @@ function loadScene() {
   cube.create();
 }
 
+function playMusic() {
+  if (audioContext.state === 'suspended'){
+    audioContext.resume();
+  }
+
+  audioElement.play();
+}
+
+
 function main() {
   // Initial display for framerate
   const stats = Stats();
@@ -43,6 +59,23 @@ function main() {
   stats.domElement.style.left = '0px';
   stats.domElement.style.top = '0px';
   document.body.appendChild(stats.domElement);
+
+
+  audioContext = new AudioContext();
+
+  audioElement = new Audio(audioFile);
+
+  const track = audioContext.createMediaElementSource(audioElement);
+  track.connect(audioContext.destination);
+
+  const audioAnalyser = audioContext.createAnalyser();
+  audioAnalyser.fftSize = 2048;
+
+  const bufferLength = audioAnalyser.frequencyBinCount;
+  const dataArray = new Uint8Array(bufferLength);
+  audioAnalyser.getByteFrequencyData(dataArray);
+
+  track.connect(audioAnalyser);
 
   // Add controls to the gui
   const gui = new DAT.GUI();
@@ -55,6 +88,7 @@ function main() {
   jitter_gui.add(controls, "displacement", 0, 1);
   jitter_gui.add(controls, "frequency", 0, 2);
   gui.add(controls, 'Load Scene');
+  gui.add(controls, 'Play Music');
 
   // get canvas and webgl context
   const canvas = <HTMLCanvasElement> document.getElementById('canvas');
@@ -90,6 +124,17 @@ function main() {
   // This function will be called every frame
   function tick() {
     time++;
+
+    // audio
+    audioAnalyser.getByteFrequencyData(dataArray);
+    
+    let average: number = 0.0;
+    for(var i = 0; i < audioAnalyser.frequencyBinCount; i++)
+    {
+        average += dataArray[i]/256.0;
+    }
+    average /= dataArray.length;
+
     camera.update();
     stats.begin();
     gl.viewport(0, 0, window.innerWidth, window.innerHeight);
@@ -106,6 +151,7 @@ function main() {
       controls.color[0]/255., controls.color[1]/255., controls.color[2]/255., 1.0));  
     custom.setJitter(controls.displacement, controls.frequency);
     custom.setTime(time);
+    custom.setAudio(average);
 
     renderer.render(camera, custom, [
       icosphere,

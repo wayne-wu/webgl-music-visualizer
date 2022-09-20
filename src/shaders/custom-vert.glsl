@@ -13,6 +13,8 @@ uniform float u_Frequency;
 uniform float u_NoisePersistence;
 uniform float u_NoiseScale;
 
+uniform float u_AudioFreqAvg;
+
 uniform mat4 u_Model;       // The matrix that defines the transformation of the
                             // object we're rendering. In this assignment,
                             // this will be the result of traversing your scene graph.
@@ -141,7 +143,7 @@ void main()
     
     float amp = sin(0.1*u_Time) + 1.0;
 
-    float displacement = amp*fbm(vs_Pos.xyz + vec3(u_Time*0.01));
+    float displacement = u_AudioFreqAvg*4.0*fbm(vs_Pos.xyz + vec3(u_Time*0.01));
 
     fs_Disp = map(displacement, 0.0, 5.0, 0.0, 1.0);
 

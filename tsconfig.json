@@ -7,5 +7,6 @@
     "target": "es6",
     "allowJs": true,
     "moduleResolution": "node"
-  }
+  },
+  "include": ["index.d.ts"]
 }
