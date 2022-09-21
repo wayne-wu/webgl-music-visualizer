@@ -8,12 +8,13 @@
 //geometry with millions of vertices.
 
 uniform float u_Time;
-uniform float u_Displacement;
-uniform float u_Frequency;
-uniform float u_NoisePersistence;
-uniform float u_NoiseScale;
+
+uniform float u_FBMScale;
+uniform float u_FBMPersistence;
+uniform float u_FBMOctaves;
 
 uniform float u_AudioFreqAvg;
+uniform float u_AudioTimeAvg;
 
 uniform mat4 u_Model;       // The matrix that defines the transformation of the
                             // object we're rendering. In this assignment,
@@ -43,7 +44,36 @@ out float fs_Disp;
 const vec4 lightPos = vec4(5, 5, 3, 1); //The position of our virtual light, which is used to compute the shading of
                                         //the geometry in the fragment shader.
 
-// Hash functions are taken from IQ's shadertoy examples
+
+// basic easing
+float ease_in_quadratic(float t) 
+{
+    return t * t;
+}
+
+float bias(float b, float t) 
+{
+    return pow(t, log(b) / log(0.5));
+}
+
+float gain(float g, float t) 
+{
+    if (t < 0.5)
+        return bias(1.0-g, 2.0*t)/2.0;
+    else
+        return 1.0 - bias(1.0-g, 2.0 - 2.0*t)/2.0;
+}
+
+float impulse(float k, float x)
+{
+    float h = k*x;
+    return h * exp(1.0-h);
+}
+
+float map(float value, float min1, float max1, float min2, float max2) {
+  return min2 + (value - min1) * (max2 - min2) / (max1 - min1);
+}
+
 // Hash functions are taken from IQ's shadertoy examples
 float hash(vec3 p)
 {
@@ -83,8 +113,23 @@ float grad(vec3 i, vec3 f, vec3 inc)
     return dot(hash3(i + inc), f - inc);
 }
 
-float map(float value, float min1, float max1, float min2, float max2) {
-  return min2 + (value - min1) * (max2 - min2) / (max1 - min1);
+float noise( in vec3 x )
+{
+    vec3 i = floor(x);
+    vec3 u = fract(x);
+    u = cubic(u);
+	
+    float a = hash(i+vec3(0,0,0));
+    float b = hash(i+vec3(1,0,0));
+    float c = hash(i+vec3(0,1,0));
+    float d = hash(i+vec3(1,1,0));
+    float e = hash(i+vec3(0,0,1));
+    float f = hash(i+vec3(1,0,1));
+    float g = hash(i+vec3(0,1,1));
+    float h = hash(i+vec3(1,1,1));
+
+    // Trilinear Interpolation
+    return trilinear(a, b, c, d, e, f, g, h, u);
 }
 
 float perlin( in vec3 x )
@@ -116,14 +161,14 @@ float fbm(in vec3 pos)
     float total = 0.f;
     float amplitudeSum = 0.f;
 
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < int(u_FBMOctaves); i++)
     {
         float frequency = pow(2.0f, float(i));
-        float amplitude = pow(u_NoisePersistence, float(i));
+        float amplitude = pow(u_FBMPersistence, float(i));
         
         amplitudeSum += amplitude;
 
-        total += amplitude*mountain(frequency*pos*u_NoiseScale);
+        total += amplitude*mountain(frequency*pos*u_FBMScale);
     }
 
     return total/amplitudeSum;
@@ -141,14 +186,15 @@ void main()
                                                             // the model matrix.
     fs_Pos = vs_Pos;
     
-    float amp = sin(0.1*u_Time) + 1.0;
+    float amp = ease_in_quadratic(u_AudioFreqAvg);
+    vec3 offset = vec3(0.01)*u_Time;
 
-    float displacement = u_AudioFreqAvg*u_AudioFreqAvg*10.0*fbm(vs_Pos.xyz + vec3(u_Time*0.01));
+    float displacement = amp * fbm(vs_Pos.xyz + offset);
 
-    fs_Disp = map(displacement, 0.0, 5.0, 0.0, 1.0);
+    fs_Disp = displacement;
 
     vec4 jitteredPos = vs_Pos;
-    jitteredPos.xyz += u_Displacement * displacement * vs_Nor.xyz;
+    jitteredPos.xyz += displacement * vs_Nor.xyz;
 
     vec4 modelposition = u_Model * jitteredPos;   // Temporarily store the transformed vertex positions for use below
 

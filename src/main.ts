@@ -18,8 +18,7 @@ const controls = {
   color: [ 255, 0, 0],
   scale: 1.5,
   persistence: 0.75,
-  displacement: 0.1,
-  frequency: 0.1,
+  octaves: 4,
   'Load Scene': loadScene, // A function pointer, essentially
   'Play Music': playMusic,
 };
@@ -27,18 +26,19 @@ const controls = {
 let outtersphere: Icosphere;
 let innersphere: Icosphere;
 let square: Square;
-let cube: Cube;
-let prevTesselations: number = 5;
 
 let audioContext : AudioContext;
 let audioElement: HTMLAudioElement;
 
 function loadScene() {
-  outtersphere = new Icosphere(vec3.fromValues(0, 0, 0), 3, 4, gl.LINES);
+  outtersphere = new Icosphere(vec3.fromValues(0, 0, 0), 1.1, 3, gl.LINE_STRIP);
   outtersphere.create();
 
-  innersphere = new Icosphere(vec3.fromValues(0, 0, 0), 1, 7, gl.TRIANGLES);
+  innersphere = new Icosphere(vec3.fromValues(0, 0, 0), 1, 8, gl.TRIANGLES);
   innersphere.create();
+
+  square = new Square(vec3.fromValues(0,0,0));
+  square.create();
 }
 
 function playMusic() {
@@ -71,8 +71,10 @@ function main() {
   audioAnalyser.fftSize = 2048;
 
   const bufferLength = audioAnalyser.frequencyBinCount;
-  const dataArray = new Uint8Array(bufferLength);
-  audioAnalyser.getByteFrequencyData(dataArray);
+  const freqDomain = new Uint8Array(bufferLength);
+  const timeDomain = new Uint8Array(bufferLength);
+  audioAnalyser.getByteFrequencyData(freqDomain);
+  audioAnalyser.getByteTimeDomainData(timeDomain);
 
   track.connect(audioAnalyser);
 
@@ -82,9 +84,7 @@ function main() {
   const noise_gui = gui.addFolder("noise");
   noise_gui.add(controls, 'persistence', 0, 1);
   noise_gui.add(controls, 'scale', 0, 5);
-  const jitter_gui = gui.addFolder("jitter");
-  jitter_gui.add(controls, "displacement", 0, 1);
-  jitter_gui.add(controls, "frequency", 0, 2);
+  noise_gui.add(controls, 'octaves', 1, 10).step(1);
   gui.add(controls, 'Load Scene');
   gui.add(controls, 'Play Music');
 
@@ -107,46 +107,185 @@ function main() {
   renderer.setClearColor(0.0, 0.0, 0.0, 1);
   gl.enable(gl.DEPTH_TEST);
 
-  const custom = new ShaderProgram([
-    new Shader(gl.VERTEX_SHADER, require('./shaders/custom-vert.glsl')),
-    new Shader(gl.FRAGMENT_SHADER, require('./shaders/custom-frag.glsl')),
+  const fireball = new ShaderProgram([
+    new Shader(gl.VERTEX_SHADER, require('./shaders/fire-vert.glsl')),
+    new Shader(gl.FRAGMENT_SHADER, require('./shaders/fire-frag.glsl')),
+  ])
+
+  const line = new ShaderProgram([
+    new Shader(gl.VERTEX_SHADER, require('./shaders/line-vert.glsl')),
+    new Shader(gl.FRAGMENT_SHADER, require('./shaders/line-frag.glsl')),
+  ])
+
+  const bg = new ShaderProgram([
+    new Shader(gl.VERTEX_SHADER, require('./shaders/bg-vert.glsl')),
+    new Shader(gl.FRAGMENT_SHADER, require('./shaders/bg-frag.glsl')),
+  ])
+
+
+  const blur = new ShaderProgram([
+    new Shader(gl.VERTEX_SHADER, require('./shaders/quad-vert.glsl')),
+    new Shader(gl.FRAGMENT_SHADER, require('./shaders/blur-frag.glsl')),
+  ])
+
+  const quad = new ShaderProgram([
+    new Shader(gl.VERTEX_SHADER, require('./shaders/quad-vert.glsl')),
+    new Shader(gl.FRAGMENT_SHADER, require('./shaders/blend-frag.glsl')),
   ])
 
   var time = 0;
+
+  const fbo = gl.createFramebuffer();
+
+  const colorTex = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, colorTex);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, window.innerWidth, window.innerHeight, 
+    0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+
+  const brightTex = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, brightTex);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, window.innerWidth, window.innerHeight, 
+    0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+
+  gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+  gl.framebufferTexture2D(gl.DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, colorTex, 0);
+  gl.framebufferTexture2D(gl.DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT1, gl.TEXTURE_2D, brightTex, 0);
+  
+  const rboDepth = gl.createRenderbuffer();
+  gl.bindRenderbuffer(gl.RENDERBUFFER, rboDepth);
+  gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, window.innerWidth, window.innerHeight);
+  gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, rboDepth);
+  gl.drawBuffers([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT1]);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+  let blurFBOs = new Array<WebGLFramebuffer>(2);
+  let blurTexs = new Array<WebGLTexture>(2);
+
+  blurFBOs[0] = gl.createFramebuffer();
+  blurFBOs[1] = gl.createFramebuffer();
+  blurTexs[0] = gl.createTexture();
+  blurTexs[1] = gl.createTexture();
+
+  for(var i = 0; i < 2; i++)
+  {
+    gl.bindFramebuffer(gl.FRAMEBUFFER, blurFBOs[i]);
+    gl.bindTexture(gl.TEXTURE_2D, blurTexs[i]);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, window.innerWidth, window.innerHeight, 
+      0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    gl.framebufferTexture2D(gl.DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, blurTexs[i], 0);
+  }
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+  blur.use();
+  gl.uniform1i(gl.getUniformLocation(blur.prog, "scene"), 0);
+
+  quad.use();
+  gl.uniform1i(gl.getUniformLocation(quad.prog, "scene"), 0);
+  gl.uniform1i(gl.getUniformLocation(quad.prog, "blurred"), 1);
 
   // This function will be called every frame
   function tick() {
     time++;
 
     // audio
-    audioAnalyser.getByteFrequencyData(dataArray);
+    audioAnalyser.getByteFrequencyData(freqDomain);
+    audioAnalyser.getByteTimeDomainData(timeDomain);
     
-    let average: number = 0.0;
+    let freqAvg: number = 0.0;
+    let timeAvg: number = 0.0;
     for(var i = 0; i < audioAnalyser.frequencyBinCount; i++)
     {
-      average += dataArray[i]/256.0;
+      freqAvg += freqDomain[i];
+      timeAvg += timeDomain[i];
     }
-    average /= dataArray.length;
+    freqAvg /= (freqDomain.length*256.0);
+    timeAvg /= (timeDomain.length*256.0);
 
     camera.update();
     stats.begin();
     gl.viewport(0, 0, window.innerWidth, window.innerHeight);
     renderer.clear();
 
-    custom.setNoise(controls.scale, controls.persistence);
-    custom.setGeometryColor(vec4.fromValues(
-      controls.color[0]/255., controls.color[1]/255., controls.color[2]/255., 1.0));  
-    custom.setJitter(controls.displacement, controls.frequency);
-    custom.setTime(time);
-    custom.setAudio(average);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+    renderer.clear();
 
-    renderer.render(camera, custom, [
+    // Render main scene
+    fireball.setNoise(controls.scale, controls.persistence, controls.octaves);
+    fireball.setGeometryColor(vec4.fromValues(
+      controls.color[0]/255., controls.color[1]/255., controls.color[2]/255., 1.0));  
+    fireball.setTime(time);
+    fireball.setAudio(freqAvg, timeAvg);
+
+    line.setNoise(controls.scale, controls.persistence, controls.octaves);
+    line.setGeometryColor(vec4.fromValues(
+      controls.color[0]/255., controls.color[1]/255., controls.color[2]/255., 1.0));  
+    line.setTime(time);
+    line.setAudio(freqAvg, timeAvg);
+
+    renderer.render(camera, line, [
       outtersphere,
     ]);
 
-    renderer.render(camera, custom, [
+    renderer.render(camera, fireball, [
       innersphere,
     ])
+
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+    // Blurring render pipeline
+    var horizontal = true, first_iteration = true;
+    var amount = 10;
+    blur.use();
+    renderer.clear();
+
+    var loc = gl.getUniformLocation(blur.prog, "u_Horizontal");
+    for (var i = 0; i < amount; i++)
+    {
+      var idx = Number(horizontal);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, blurFBOs[idx]);
+      gl.uniform1i(loc, idx);
+      gl.bindTexture(gl.TEXTURE_2D, first_iteration? brightTex : blurTexs[Number(!horizontal)]);
+
+      renderer.render(camera, blur, [
+        square
+      ]);
+
+      horizontal = !horizontal;
+      first_iteration = false;
+    }
+    
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    
+    renderer.clear();
+    quad.use();
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, colorTex);
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, blurTexs[Number(!horizontal)]);
+
+    renderer.render(camera, quad, [
+      square,
+    ]);
+
+    // // background
+    // gl.depthFunc(gl.LEQUAL);
+    // renderer.render(camera, bg, [
+    //   square,
+    // ]);
 
     stats.end();
 

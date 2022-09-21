@@ -24,19 +24,22 @@ class ShaderProgram {
   attrPos: number;
   attrNor: number;
   attrCol: number;
+  attrUV: number;
 
   unifModel: WebGLUniformLocation;
   unifModelInvTr: WebGLUniformLocation;
   unifViewProj: WebGLUniformLocation;
   unifColor: WebGLUniformLocation;
   unifTime: WebGLUniformLocation;
-  unifNoiseScale: WebGLUniformLocation;
-  unifNoisePersistence: WebGLUniformLocation;
-  unifDisplacement: WebGLUniformLocation;
-  unifFrequency: WebGLUniformLocation;
+
+  // Noise
+  unifFBMScale: WebGLUniformLocation;
+  unifFBMPersistence: WebGLUniformLocation;
+  unifFBMOctaves: WebGLUniformLocation;
 
   // Audio
   unifAudioFreqAvg : WebGLUniformLocation;
+  unifAudioTimeAvg: WebGLUniformLocation;
 
   constructor(shaders: Array<Shader>) {
     this.prog = gl.createProgram();
@@ -52,16 +55,19 @@ class ShaderProgram {
     this.attrPos = gl.getAttribLocation(this.prog, "vs_Pos");
     this.attrNor = gl.getAttribLocation(this.prog, "vs_Nor");
     this.attrCol = gl.getAttribLocation(this.prog, "vs_Col");
+    this.attrUV = gl.getAttribLocation(this.prog, "vs_UV");
     this.unifModel      = gl.getUniformLocation(this.prog, "u_Model");
     this.unifModelInvTr = gl.getUniformLocation(this.prog, "u_ModelInvTr");
     this.unifViewProj   = gl.getUniformLocation(this.prog, "u_ViewProj");
     this.unifColor      = gl.getUniformLocation(this.prog, "u_Color");
     this.unifTime       = gl.getUniformLocation(this.prog, "u_Time");
-    this.unifNoiseScale = gl.getUniformLocation(this.prog, "u_NoiseScale");
-    this.unifNoisePersistence = gl.getUniformLocation(this.prog, "u_NoisePersistence");
-    this.unifDisplacement = gl.getUniformLocation(this.prog, "u_Displacement");
-    this.unifFrequency = gl.getUniformLocation(this.prog, "u_Frequency");
+
+    this.unifFBMScale = gl.getUniformLocation(this.prog, "u_FBMScale");
+    this.unifFBMPersistence = gl.getUniformLocation(this.prog, "u_FBMPersistence");
+    this.unifFBMOctaves = gl.getUniformLocation(this.prog, "u_FBMOctaves");
+
     this.unifAudioFreqAvg = gl.getUniformLocation(this.prog, "u_AudioFreqAvg");
+    this.unifAudioTimeAvg = gl.getUniformLocation(this.prog, "u_AudioTimeAvg");
   }
 
   use() {
@@ -104,21 +110,17 @@ class ShaderProgram {
     gl.uniform1f(this.unifTime, time);
   }
 
-  setNoise(scale: number, persistence: number) {
+  setNoise(scale: number, persistence: number, octaves: number) {
     this.use();
-    gl.uniform1f(this.unifNoiseScale, scale);
-    gl.uniform1f(this.unifNoisePersistence, persistence);
+    gl.uniform1f(this.unifFBMScale, scale);
+    gl.uniform1f(this.unifFBMPersistence, persistence);
+    gl.uniform1f(this.unifFBMOctaves, octaves);
   }
 
-  setJitter(displacement: number, frequency: number) {
-    this.use();
-    gl.uniform1f(this.unifDisplacement, displacement);
-    gl.uniform1f(this.unifFrequency, frequency);
-  }
-
-  setAudio(freqAvg: number) {
+  setAudio(freqAvg: number, timeAvg: number) {
     this.use();
     gl.uniform1f(this.unifAudioFreqAvg, freqAvg);
+    gl.uniform1f(this.unifAudioTimeAvg, timeAvg);
   }
 
   draw(d: Drawable) {
@@ -134,11 +136,17 @@ class ShaderProgram {
       gl.vertexAttribPointer(this.attrNor, 4, gl.FLOAT, false, 0, 0);
     }
 
+    if (this.attrUV != -1 && d.bindUV()){
+      gl.enableVertexAttribArray(this.attrUV);
+      gl.vertexAttribPointer(this.attrUV, 2, gl.FLOAT, false, 0, 0);
+    }
+
     d.bindIdx();
     gl.drawElements(d.drawMode(), d.elemCount(), gl.UNSIGNED_INT, 0);
 
     if (this.attrPos != -1) gl.disableVertexAttribArray(this.attrPos);
     if (this.attrNor != -1) gl.disableVertexAttribArray(this.attrNor);
+    if (this.attrUV != -1) gl.disableVertexAttribArray(this.attrUV);
   }
 };
 
