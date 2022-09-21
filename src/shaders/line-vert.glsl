@@ -147,13 +147,13 @@ float perlin( in vec3 x )
     float g = grad(i, u, vec3(0,1,1));
     float h = grad(i, u, vec3(1,1,1));
 
-    return 0.5*(trilinear(a, b, c, d, e, f, g, h, u) + 1.0);
+    return trilinear(a, b, c, d, e, f, g, h, u);
 }
 
 float mountain(vec3 p)
 {
     float f = 5.0;
-    return 2.0*(sin(f*p.x) + cos(f*p.y) + sin(f*p.z));
+    return 3.0*(sin(f*p.x) + cos(f*p.y) + sin(f*p.z));
 }
 
 float fbm(in vec3 pos)
@@ -168,7 +168,7 @@ float fbm(in vec3 pos)
         
         amplitudeSum += amplitude;
 
-        total += amplitude*mountain(frequency*pos*u_FBMScale);
+        total += amplitude*perlin(frequency*pos*u_FBMScale);
     }
 
     return total/amplitudeSum;
@@ -187,9 +187,10 @@ void main()
     fs_Pos = vs_Pos;
     
     float amp = ease_in_quadratic(u_AudioFreqAvg);
+    
     vec3 offset = vec3(0.01)*u_Time;
-
-    float displacement = amp * fbm(vs_Pos.xyz + offset);
+    
+    float displacement = amp * 20.0 * fbm(vs_Pos.xyz + offset);
 
     fs_Disp = displacement;
 

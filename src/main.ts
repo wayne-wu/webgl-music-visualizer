@@ -16,26 +16,30 @@ import audioFile from "./assets/infinitysign.mp3";
 // This will be referred to by dat.GUI's functions that add GUI elements.
 const controls = {
   color: [ 255, 0, 0],
-  scale: 1.5,
-  persistence: 0.75,
+  scale: 1.0,
+  persistence: 1.0,
   octaves: 4,
   'Load Scene': loadScene, // A function pointer, essentially
   'Play Music': playMusic,
 };
 
-let outtersphere: Icosphere;
-let innersphere: Icosphere;
+let sphere1: Icosphere;
+let sphere2: Icosphere;
+let sphere3: Icosphere;
 let square: Square;
 
 let audioContext : AudioContext;
 let audioElement: HTMLAudioElement;
 
 function loadScene() {
-  outtersphere = new Icosphere(vec3.fromValues(0, 0, 0), 1.1, 3, gl.LINE_STRIP);
-  outtersphere.create();
+  sphere1 = new Icosphere(vec3.fromValues(0,0,0), 2.1, 3, gl.LINES);
+  sphere1.create();
 
-  innersphere = new Icosphere(vec3.fromValues(0, 0, 0), 1, 8, gl.TRIANGLES);
-  innersphere.create();
+  sphere2 = new Icosphere(vec3.fromValues(0,0,0), 1.8, 4, gl.LINES);
+  sphere2.create();
+
+  sphere3 = new Icosphere(vec3.fromValues(0,0,0), 1.2, 2, gl.LINES);
+  sphere3.create();
 
   square = new Square(vec3.fromValues(0,0,0));
   square.create();
@@ -48,7 +52,6 @@ function playMusic() {
 
   audioElement.play();
 }
-
 
 function main() {
   // Initial display for framerate
@@ -107,11 +110,6 @@ function main() {
   renderer.setClearColor(0.0, 0.0, 0.0, 1);
   gl.enable(gl.DEPTH_TEST);
 
-  const fireball = new ShaderProgram([
-    new Shader(gl.VERTEX_SHADER, require('./shaders/fire-vert.glsl')),
-    new Shader(gl.FRAGMENT_SHADER, require('./shaders/fire-frag.glsl')),
-  ])
-
   const line = new ShaderProgram([
     new Shader(gl.VERTEX_SHADER, require('./shaders/line-vert.glsl')),
     new Shader(gl.FRAGMENT_SHADER, require('./shaders/line-frag.glsl')),
@@ -121,7 +119,6 @@ function main() {
     new Shader(gl.VERTEX_SHADER, require('./shaders/bg-vert.glsl')),
     new Shader(gl.FRAGMENT_SHADER, require('./shaders/bg-frag.glsl')),
   ])
-
 
   const blur = new ShaderProgram([
     new Shader(gl.VERTEX_SHADER, require('./shaders/quad-vert.glsl')),
@@ -223,37 +220,33 @@ function main() {
     gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
     renderer.clear();
 
-    // Render main scene
-    fireball.setNoise(controls.scale, controls.persistence, controls.octaves);
-    fireball.setGeometryColor(vec4.fromValues(
-      controls.color[0]/255., controls.color[1]/255., controls.color[2]/255., 1.0));  
-    fireball.setTime(time);
-    fireball.setAudio(freqAvg, timeAvg);
-
-    line.setNoise(controls.scale, controls.persistence, controls.octaves);
-    line.setGeometryColor(vec4.fromValues(
-      controls.color[0]/255., controls.color[1]/255., controls.color[2]/255., 1.0));  
     line.setTime(time);
     line.setAudio(freqAvg, timeAvg);
 
-    renderer.render(camera, line, [
-      outtersphere,
-    ]);
+    // yellow sphere
+    line.setNoise(controls.scale, controls.persistence, controls.octaves);
+    line.setGeometryColor(vec4.fromValues(1.0, 0.91, 0.0, 1.0));  
+    renderer.render(camera, line, [sphere1]);
 
-    renderer.render(camera, fireball, [
-      innersphere,
-    ])
+    // blue sphere
+    line.setNoise(controls.scale, controls.persistence*0.5, 2);
+    line.setGeometryColor(vec4.fromValues(0.06, 1.0, 1.0, 1.0));  
+    renderer.render(camera, line, [sphere2,])
+
+    // pink sphere
+    line.setNoise(controls.scale*2.0, controls.persistence*0.5, controls.octaves);
+    line.setGeometryColor(vec4.fromValues(1.0, 0.078, 0.576, 1.0)); 
+    renderer.render(camera, line, [sphere3,]);
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
     // Blurring render pipeline
     var horizontal = true, first_iteration = true;
-    var amount = 10;
     blur.use();
     renderer.clear();
 
     var loc = gl.getUniformLocation(blur.prog, "u_Horizontal");
-    for (var i = 0; i < amount; i++)
+    for (var i = 0; i < 10; i++)
     {
       var idx = Number(horizontal);
       gl.bindFramebuffer(gl.FRAMEBUFFER, blurFBOs[idx]);

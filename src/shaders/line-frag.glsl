@@ -37,13 +37,20 @@ float bias(float t, float b)
 
 void main() 
 {
-    // Material base color (before shading)
-    vec4 diffuseColor = u_Color;
-    diffuseColor.xyz = mix(vec3(1.0), u_Color.xyz, bias(fs_Disp, 0.75));
+    vec3 color = u_Color.xyz;
+    color.xyz = mix(vec3(0.0), color, bias(fs_Disp, 0.75));
 
+    // Calculate the diffuse term for Lambert shading
+    float diffuseTerm = dot(normalize(fs_Nor), normalize(fs_LightVec));
+
+    float ambientTerm = 0.5f;
+
+    float lightIntensity = diffuseTerm + ambientTerm;   //Add a small float value to the color multiplier
+                                                        //to simulate ambient lighting. This ensures that faces that are not
+                                                        //lit by our point light are not completely black.
     // Compute final shaded color
-    out_Col = diffuseColor;
-    out_BrightCol = diffuseColor;
+    out_Col = vec4(color * lightIntensity, 1.0);
+    out_BrightCol = out_Col;
     
     // float brightness = dot(out_Col.rgb, vec3(0.2126, 0.7152, 0.0722));
     // if (brightness > 1.0)
