@@ -14,10 +14,6 @@ precision highp float;
 uniform float u_Time;
 uniform vec4 u_Color; // The color with which to render this instance of geometry.
 
-uniform float u_FBMScale;
-uniform float u_FBMPersistence;
-uniform float u_FBMOctaves;
-
 // These are the interpolated values out of the rasterizer, so you can't know
 // their specific values without knowing the vertices that contributed to them
 in vec4 fs_Nor;
@@ -35,6 +31,14 @@ float bias(float t, float b)
     return t/((((1.0/b)-2.0)*(1.0-t))+1.0);
 }
 
+float gain(float g, float t) 
+{
+    if (t < 0.5)
+        return bias(g, 2.0*t)/2.0;
+    else
+        return bias(1.0-g, 2.0*t - 1.0)/2.0 + 0.5;
+}
+
 void main() 
 {
     vec3 color = u_Color.xyz;
@@ -49,12 +53,6 @@ void main()
                                                         //to simulate ambient lighting. This ensures that faces that are not
                                                         //lit by our point light are not completely black.
     // Compute final shaded color
-    out_Col = vec4(color * lightIntensity, 1.0);
+    out_Col = vec4(color * gain(0.3, lightIntensity), 1.0);
     out_BrightCol = out_Col;
-    
-    // float brightness = dot(out_Col.rgb, vec3(0.2126, 0.7152, 0.0722));
-    // if (brightness > 1.0)
-    //     out_BrightCol = vec4(out_Col.rgb, 1.0);
-    // else
-    //     out_BrightCol = vec4(0.0, 0.0, 0.0, 1.0);
 }

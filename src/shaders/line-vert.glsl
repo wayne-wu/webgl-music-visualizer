@@ -12,6 +12,7 @@ uniform float u_Time;
 uniform float u_FBMScale;
 uniform float u_FBMPersistence;
 uniform float u_FBMOctaves;
+uniform float u_FBMOffset;
 
 uniform float u_AudioFreqAvg;
 uniform float u_AudioTimeAvg;
@@ -187,12 +188,14 @@ void main()
     fs_Pos = vs_Pos;
     
     float amp = ease_in_quadratic(u_AudioFreqAvg);
+
+    amp = impulse(0.5, amp);
     
-    vec3 offset = vec3(0.01)*u_Time;
+    vec3 offset = vec3(u_FBMOffset)*u_Time;
     
     float displacement = amp * 20.0 * fbm(vs_Pos.xyz + offset);
 
-    fs_Disp = displacement;
+    fs_Disp = map(displacement, 0.0, 5.0, 0.0, 1.0);
 
     vec4 jitteredPos = vs_Pos;
     jitteredPos.xyz += displacement * vs_Nor.xyz;

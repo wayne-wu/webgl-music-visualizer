@@ -36,6 +36,7 @@ class ShaderProgram {
   unifFBMScale: WebGLUniformLocation;
   unifFBMPersistence: WebGLUniformLocation;
   unifFBMOctaves: WebGLUniformLocation;
+  unifFBMOffset: WebGLUniformLocation;
 
   // Audio
   unifAudioFreqAvg : WebGLUniformLocation;
@@ -65,6 +66,7 @@ class ShaderProgram {
     this.unifFBMScale = gl.getUniformLocation(this.prog, "u_FBMScale");
     this.unifFBMPersistence = gl.getUniformLocation(this.prog, "u_FBMPersistence");
     this.unifFBMOctaves = gl.getUniformLocation(this.prog, "u_FBMOctaves");
+    this.unifFBMOffset = gl.getUniformLocation(this.prog, "u_FBMOffset");
 
     this.unifAudioFreqAvg = gl.getUniformLocation(this.prog, "u_AudioFreqAvg");
     this.unifAudioTimeAvg = gl.getUniformLocation(this.prog, "u_AudioTimeAvg");
@@ -110,11 +112,12 @@ class ShaderProgram {
     gl.uniform1f(this.unifTime, time);
   }
 
-  setNoise(scale: number, persistence: number, octaves: number) {
+  setNoise(scale: number, persistence: number, octaves: number, offset: number) {
     this.use();
     gl.uniform1f(this.unifFBMScale, scale);
     gl.uniform1f(this.unifFBMPersistence, persistence);
     gl.uniform1f(this.unifFBMOctaves, octaves);
+    gl.uniform1f(this.unifFBMOffset, offset);
   }
 
   setAudio(freqAvg: number, timeAvg: number) {

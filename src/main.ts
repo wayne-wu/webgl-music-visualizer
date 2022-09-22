@@ -15,34 +15,56 @@ import audioFile from "./assets/infinitysign.mp3";
 // Define an object with application parameters and button callbacks
 // This will be referred to by dat.GUI's functions that add GUI elements.
 const controls = {
-  color: [ 255, 0, 0],
+  separation: 0.5,
   scale: 1.0,
   persistence: 1.0,
-  octaves: 4,
+  octaves: 1,
   'Load Scene': loadScene, // A function pointer, essentially
+  'Reset Parameters': resetParameters,
   'Play Music': playMusic,
 };
 
 let sphere1: Icosphere;
 let sphere2: Icosphere;
 let sphere3: Icosphere;
+let sphere4: Icosphere;
 let square: Square;
+
+let prevSeparation: number;
 
 let audioContext : AudioContext;
 let audioElement: HTMLAudioElement;
 
 function loadScene() {
-  sphere1 = new Icosphere(vec3.fromValues(0,0,0), 2.1, 3, gl.LINES);
-  sphere1.create();
 
-  sphere2 = new Icosphere(vec3.fromValues(0,0,0), 1.8, 4, gl.LINES);
+  var start = 1.2;
+  sphere3 = new Icosphere(vec3.fromValues(0,0,0), start, 5, gl.LINES);
+  sphere3.create();
+
+  start += controls.separation;
+  sphere2 = new Icosphere(vec3.fromValues(0,0,0), start, 4, gl.LINES);
   sphere2.create();
 
-  sphere3 = new Icosphere(vec3.fromValues(0,0,0), 1.2, 2, gl.LINES);
-  sphere3.create();
+  start += controls.separation;
+  sphere1 = new Icosphere(vec3.fromValues(0,0,0), start, 3, gl.LINES);
+  sphere1.create();
+
+
+  sphere4 = new Icosphere(vec3.fromValues(0,0,0), 2.5, 2, gl.LINES);
+  sphere4.create();
 
   square = new Square(vec3.fromValues(0,0,0));
   square.create();
+}
+
+function resetParameters() {
+  controls.octaves = 1;
+  controls.separation = 0.5;
+  controls.persistence = 1.0;
+  controls.scale = 1.0;
+
+
+
 }
 
 function playMusic() {
@@ -83,12 +105,13 @@ function main() {
 
   // Add controls to the gui
   const gui = new DAT.GUI();
-  gui.addColor(controls, "color");
+  gui.add(controls, 'separation', 0, 1).listen();
   const noise_gui = gui.addFolder("noise");
-  noise_gui.add(controls, 'persistence', 0, 1);
-  noise_gui.add(controls, 'scale', 0, 5);
-  noise_gui.add(controls, 'octaves', 1, 10).step(1);
+  noise_gui.add(controls, 'persistence', 0, 1).listen();
+  noise_gui.add(controls, 'scale', 0, 5).listen();
+  noise_gui.add(controls, 'octaves', 0, 5).step(1).listen();
   gui.add(controls, 'Load Scene');
+  gui.add(controls, 'Reset Parameters');
   gui.add(controls, 'Play Music');
 
   // get canvas and webgl context
@@ -198,6 +221,12 @@ function main() {
   function tick() {
     time++;
 
+    if (prevSeparation != controls.separation)
+    {
+      prevSeparation = controls.separation;
+      loadScene();
+    }
+
     // audio
     audioAnalyser.getByteFrequencyData(freqDomain);
     audioAnalyser.getByteTimeDomainData(timeDomain);
@@ -224,19 +253,25 @@ function main() {
     line.setAudio(freqAvg, timeAvg);
 
     // yellow sphere
-    line.setNoise(controls.scale, controls.persistence, controls.octaves);
+    line.setNoise(controls.scale, controls.persistence, 2+controls.octaves, 0.01);
     line.setGeometryColor(vec4.fromValues(1.0, 0.91, 0.0, 1.0));  
     renderer.render(camera, line, [sphere1]);
 
     // blue sphere
-    line.setNoise(controls.scale, controls.persistence*0.5, 2);
+    line.setNoise(controls.scale, controls.persistence*0.2, 1+controls.octaves, -0.01);
     line.setGeometryColor(vec4.fromValues(0.06, 1.0, 1.0, 1.0));  
     renderer.render(camera, line, [sphere2,])
 
     // pink sphere
-    line.setNoise(controls.scale*2.0, controls.persistence*0.5, controls.octaves);
+    line.setNoise(controls.scale*2.0, controls.persistence*0.5, 3+controls.octaves, 0.005);
     line.setGeometryColor(vec4.fromValues(1.0, 0.078, 0.576, 1.0)); 
     renderer.render(camera, line, [sphere3,]);
+    
+      // // background
+    // gl.depthFunc(gl.LEQUAL);
+    // renderer.render(camera, bg, [
+    //   square,
+    // ]);
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
@@ -274,11 +309,7 @@ function main() {
       square,
     ]);
 
-    // // background
-    // gl.depthFunc(gl.LEQUAL);
-    // renderer.render(camera, bg, [
-    //   square,
-    // ]);
+
 
     stats.end();
 
