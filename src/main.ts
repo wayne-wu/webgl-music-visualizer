@@ -9,7 +9,7 @@ import {setGL, gl} from './globals';
 import ShaderProgram, {Shader} from './rendering/gl/ShaderProgram';
 import Cube from './geometry/Cube';
 
-import audioFile from "./assets/infinitysign.mp3";
+import audioFile from "/src/assets/infinitysign.mp3";
 
 
 // Define an object with application parameters and button callbacks
