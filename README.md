@@ -2,13 +2,15 @@
 
 ## Overview
 
+[Live Demo](https://www.wuwayne.com/fireball-base/) (Hit "Play Music" to start to visualizer)
+
 ![Teaser](img/neon.gif)
 
 This project implements a neon-themed music visualizer using noise functions.
 There are three spheres that are noised using fractal brownian motion with different settings.
 Global settings that can control all three spheres are also exposed to the GUI.
 
-All three spheres are rendered with lines for added visual complexity.
+All three spheres are rendered with lines for composing visual complexity.
 In order to achieve the glow look, a bloom effect post process pipeline is implemented.
 
 Audio is loaded using WebAudio API and the audio spectrum is used to drive the amplitude of the noise.
