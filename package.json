@@ -1,4 +1,5 @@
 {
+  "homepage": "./",
   "scripts": {
     "start": "webpack-dev-server --no-hot --live-reload",
     "build": "webpack"
