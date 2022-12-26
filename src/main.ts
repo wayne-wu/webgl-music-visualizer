@@ -16,6 +16,7 @@ import audioFile from "/src/assets/infinitysign.mp3";
 // This will be referred to by dat.GUI's functions that add GUI elements.
 const controls = {
   separation: 0.5,
+  glow: 4.0,
   scale: 1.0,
   persistence: 1.0,
   octaves: 1,
@@ -37,18 +38,15 @@ let audioElement: HTMLAudioElement;
 
 function loadScene() {
 
-  var start = 1.2;
+  var start = 1.0;
   sphere3 = new Icosphere(vec3.fromValues(0,0,0), start, 5, gl.LINES);
   sphere3.create();
 
-  start += controls.separation;
   sphere2 = new Icosphere(vec3.fromValues(0,0,0), start, 4, gl.LINES);
   sphere2.create();
 
-  start += controls.separation;
   sphere1 = new Icosphere(vec3.fromValues(0,0,0), start, 3, gl.LINES);
   sphere1.create();
-
 
   sphere4 = new Icosphere(vec3.fromValues(0,0,0), 2.5, 2, gl.LINES);
   sphere4.create();
@@ -62,9 +60,7 @@ function resetParameters() {
   controls.separation = 0.5;
   controls.persistence = 1.0;
   controls.scale = 1.0;
-
-
-
+  controls.glow = 4.0;
 }
 
 function playMusic() {
@@ -106,6 +102,7 @@ function main() {
   // Add controls to the gui
   const gui = new DAT.GUI();
   gui.add(controls, 'separation', 0, 1).listen();
+  gui.add(controls, 'glow', 0, 10).listen();
   const noise_gui = gui.addFolder("noise");
   noise_gui.add(controls, 'persistence', 0, 1).listen();
   noise_gui.add(controls, 'scale', 0, 5).listen();
@@ -221,12 +218,6 @@ function main() {
   function tick() {
     time++;
 
-    if (prevSeparation != controls.separation)
-    {
-      prevSeparation = controls.separation;
-      loadScene();
-    }
-
     // audio
     audioAnalyser.getByteFrequencyData(freqDomain);
     audioAnalyser.getByteTimeDomainData(timeDomain);
@@ -252,22 +243,22 @@ function main() {
     line.setTime(time);
     line.setAudio(freqAvg, timeAvg);
 
-    // yellow sphere
-    line.setNoise(controls.scale, controls.persistence, 2+controls.octaves, 0.01);
-    line.setGeometryColor(vec4.fromValues(1.0, 0.91, 0.0, 1.0));  
-    renderer.render(camera, line, [sphere1]);
-
-    // blue sphere
-    line.setNoise(controls.scale, controls.persistence*0.2, 1+controls.octaves, -0.01);
-    line.setGeometryColor(vec4.fromValues(0.06, 1.0, 1.0, 1.0));  
-    renderer.render(camera, line, [sphere2,])
-
-    // pink sphere
+    var scale = 1.2;
     line.setNoise(controls.scale*2.0, controls.persistence*0.5, 3+controls.octaves, 0.005);
     line.setGeometryColor(vec4.fromValues(1.0, 0.078, 0.576, 1.0)); 
-    renderer.render(camera, line, [sphere3,]);
-    
-      // // background
+    renderer.render(camera, line, [sphere3,], scale);
+
+    scale += controls.separation;
+    line.setNoise(controls.scale, controls.persistence*0.2, 1+controls.octaves, -0.01);
+    line.setGeometryColor(vec4.fromValues(0.06, 1.0, 1.0, 1.0));  
+    renderer.render(camera, line, [sphere2,], scale);
+
+    scale += controls.separation;
+    line.setNoise(controls.scale, controls.persistence, 2+controls.octaves, 0.01);
+    line.setGeometryColor(vec4.fromValues(1.0, 1.0, 0.0, 1.0));  
+    renderer.render(camera, line, [sphere1], scale);
+
+    // // background
     // gl.depthFunc(gl.LEQUAL);
     // renderer.render(camera, bg, [
     //   square,
@@ -305,11 +296,10 @@ function main() {
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_2D, blurTexs[Number(!horizontal)]);
 
+    quad.setBloom(controls.glow);
     renderer.render(camera, quad, [
       square,
     ]);
-
-
 
     stats.end();
 

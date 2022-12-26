@@ -42,6 +42,9 @@ class ShaderProgram {
   unifAudioFreqAvg : WebGLUniformLocation;
   unifAudioTimeAvg: WebGLUniformLocation;
 
+  // Bloom
+  unifGlow: WebGLUniformLocation;
+
   constructor(shaders: Array<Shader>) {
     this.prog = gl.createProgram();
 
@@ -70,6 +73,8 @@ class ShaderProgram {
 
     this.unifAudioFreqAvg = gl.getUniformLocation(this.prog, "u_AudioFreqAvg");
     this.unifAudioTimeAvg = gl.getUniformLocation(this.prog, "u_AudioTimeAvg");
+
+    this.unifGlow = gl.getUniformLocation(this.prog, "u_Glow");
   }
 
   use() {
@@ -124,6 +129,11 @@ class ShaderProgram {
     this.use();
     gl.uniform1f(this.unifAudioFreqAvg, freqAvg);
     gl.uniform1f(this.unifAudioTimeAvg, timeAvg);
+  }
+
+  setBloom(glow: number) {
+    this.use();
+    gl.uniform1f(this.unifGlow, glow);
   }
 
   draw(d: Drawable) {
