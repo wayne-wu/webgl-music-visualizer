@@ -15,14 +15,15 @@ import audioFile from "/src/assets/infinitysign.mp3";
 // Define an object with application parameters and button callbacks
 // This will be referred to by dat.GUI's functions that add GUI elements.
 const controls = {
-  separation: 0.5,
-  glow: 4.0,
+  separation: 0.0,
+  glow: 4.5,
   scale: 1.0,
   persistence: 1.0,
   octaves: 1,
   'Load Scene': loadScene, // A function pointer, essentially
   'Reset Parameters': resetParameters,
   'Play Music': playMusic,
+  'Pause Music': pauseMusic,
 };
 
 let sphere1: Icosphere;
@@ -30,8 +31,6 @@ let sphere2: Icosphere;
 let sphere3: Icosphere;
 let sphere4: Icosphere;
 let square: Square;
-
-let prevSeparation: number;
 
 let audioContext : AudioContext;
 let audioElement: HTMLAudioElement;
@@ -60,7 +59,7 @@ function resetParameters() {
   controls.separation = 0.5;
   controls.persistence = 1.0;
   controls.scale = 1.0;
-  controls.glow = 4.0;
+  controls.glow = 4.5;
 }
 
 function playMusic() {
@@ -69,6 +68,10 @@ function playMusic() {
   }
 
   audioElement.play();
+}
+
+function pauseMusic() {
+  audioElement.pause();
 }
 
 function main() {
@@ -110,6 +113,7 @@ function main() {
   gui.add(controls, 'Load Scene');
   gui.add(controls, 'Reset Parameters');
   gui.add(controls, 'Play Music');
+  gui.add(controls, 'Pause Music');
 
   // get canvas and webgl context
   const canvas = <HTMLCanvasElement> document.getElementById('canvas');

@@ -2,7 +2,7 @@
 
 ## Overview
 
-[Live Demo](https://www.wuwayne.com/fireball-base/) (Hit "Play Music" to start the visualizer)
+[Live Demo](https://www.wuwayne.com/webgl-music-visualizer/) (Hit "Play Music" to start the visualizer)
 
 ![Teaser](img/neon.gif)
 
