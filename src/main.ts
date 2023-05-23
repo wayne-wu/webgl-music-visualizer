@@ -218,6 +218,31 @@ function main() {
   gl.uniform1i(gl.getUniformLocation(quad.prog, "scene"), 0);
   gl.uniform1i(gl.getUniformLocation(quad.prog, "blurred"), 1);
 
+  function resetTexSize() {
+
+    gl.bindTexture(gl.TEXTURE_2D, colorTex);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, window.innerWidth, window.innerHeight, 
+      0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    gl.bindTexture(gl.TEXTURE_2D, null);
+
+    gl.bindTexture(gl.TEXTURE_2D, brightTex);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, window.innerWidth, window.innerHeight, 
+      0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    gl.bindTexture(gl.TEXTURE_2D, null);
+
+    gl.bindRenderbuffer(gl.RENDERBUFFER, rboDepth);
+    gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, window.innerWidth, window.innerHeight);
+    gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+
+    for(var i = 0; i < 2; i++)
+    {
+      gl.bindTexture(gl.TEXTURE_2D, blurTexs[i]);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, window.innerWidth, window.innerHeight, 
+        0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+      gl.bindTexture(gl.TEXTURE_2D, null);
+    }
+  }
+
   // This function will be called every frame
   function tick() {
     time++;
@@ -315,11 +340,13 @@ function main() {
     renderer.setSize(window.innerWidth, window.innerHeight);
     camera.setAspectRatio(window.innerWidth / window.innerHeight);
     camera.updateProjectionMatrix();
+    resetTexSize();
   }, false);
 
   renderer.setSize(window.innerWidth, window.innerHeight);
   camera.setAspectRatio(window.innerWidth / window.innerHeight);
   camera.updateProjectionMatrix();
+  resetTexSize();
 
   // Start the render loop
   tick();
